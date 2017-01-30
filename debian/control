@@ -1,0 +1,10 @@
+Source: sp-enduser
+Section: main
+Priority: extra
+Maintainer: Thomas Alexander Frederiksen <taf@one.com>
+Build-Depends: make
+
+Package: sp-enduser
+Architecture: all
+Depends:
+Description: sp-enduser

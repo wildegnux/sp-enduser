@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# Esmil's magic rules file
+# - building Debian packages without insulting your intelligence since 2010
+#
+# See debian/build.sh for package specific build instructions.
+# Here is a template for creating a new one:
+#
+# clean() {
+#   make clean
+# }
+#
+# build() {
+#   ./configure --prefix=/usr
+#   make
+# }
+#
+# package() {
+#   make DESTDIR="$pkgdir" install
+# }
+
+set -e
+
+startdir="$(pwd)"
+[[ -n "$MAKEFLAGS" ]] || export MAKEFLAGS=$(echo $DEB_BUILD_OPTIONS | sed 's/.*parallel=\([0-9]*\).*/-j\1/')
+
+. debian/build.sh
+
+case "$1" in
+clean)
+  rm -rf debian/{files,tmp,*.tmp}
+  [[ "$(type -t clean)" != 'function' ]] || clean
+  ;;
+
+build)
+  [[ "$(type -t build)" != 'function' ]] || build
+  ;;
+
+binary)
+  pkgnames=($(sed -ne 's/^Package:[ \t]*\([^ \t]*\)[ \t]*$/\1/p' debian/control))
+
+  if [[ ${#pkgnames[@]} -le 1 && "$(type -t package)" = 'function' ]]; then
+    pkgname="${pkgnames[0]}"
+    pkgdir="$startdir/debian/tmp"
+    install -d "$pkgdir/DEBIAN"
+    for i in preinst postinst prerm postrm; do
+      [[ -f "debian/$i" ]] && install -m755 "debian/$i" "$pkgdir/DEBIAN/$i"
+    done
+    [[ -f debian/conffiles ]] && install -m644 debian/conffiles "$pkgdir/DEBIAN/conffiles"
+
+    install -d -m755 "$pkgdir/usr/share/doc/$pkgname"
+    gzip -c debian/changelog > "$pkgdir/usr/share/doc/$pkgname/changelog.gz"
+    for i in README TODO NEWS LICENSE; do
+      [[ -f $i ]] && install -m644 $i "$pkgdir/usr/share/doc/$pkgname/"
+    done
+
+    [[ "$(type -t package)" != 'function' ]] || package
+
+    cd "$startdir"
+    dpkg-gencontrol
+    dpkg-deb -b "$pkgdir" ..
+  else
+    for pkgname in "${pkgnames[@]}"; do
+      echo "Packaging ${pkgname}.."
+      _pkg="${pkgname//-/_}"
+      _pkg="${_pkg//./_}"
+
+      pkgdir="$startdir/debian/${pkgname}.tmp"
+      install -d "$pkgdir/DEBIAN"
+      for i in preinst postinst prerm postrm; do
+        [[ -f "debian/${pkgname}.$i" ]] && install -m755 "debian/${pkgname}.$i" "$pkgdir/DEBIAN/$i"
+      done
+      [[ -f "debian/${pkgname}.conffiles" ]] && install -m644 "debian/${pkgname}.conffiles" "$pkgdir/DEBIAN/conffiles"
+
+      install -d -m755 "$pkgdir/usr/share/doc/$pkgname"
+      gzip -c debian/changelog > "$pkgdir/usr/share/doc/$pkgname/changelog.gz"
+      for i in README TODO NEWS LICENSE; do
+        [[ -f $i ]] && install -m644 $i "$pkgdir/usr/share/doc/$pkgname/"
+      done
+
+
+      [[ "$(type -t "package_$_pkg")" != 'function' ]] || "package_$_pkg"
+
+      cd "$startdir"
+      dpkg-gencontrol -p"$pkgname" -P"$pkgdir"
+      dpkg-deb -b "$pkgdir" ..
+    done
+  fi
+  ;;
+esac

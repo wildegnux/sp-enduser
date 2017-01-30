@@ -1,0 +1,50 @@
+---
+stages:
+  - build
+  - release-testing
+  - release-staging
+  - release-next
+  - release-production
+
+build:
+  stage: build
+  except:
+    - tags
+  script:
+    - ~/bin/build-deb
+  artifacts:
+    expire_in: 1 month
+    paths:
+      - kitchen-build/*/*.deb
+      - kitchen-build/*/*.changes
+
+.release-template: &release
+  only:
+    - master@systems/sp-enduser
+  when: manual
+  dependencies:
+    - build
+
+release_to_testing:
+  <<: *release
+  stage: release-testing
+  script:
+    - ~/bin/release-deb systems-testing
+
+release_to_staging:
+  <<: *release
+  stage: release-staging
+  script:
+    - ~/bin/release-deb systems-staging
+
+release_to_next:
+  <<: *release
+  stage: release-next
+  script:
+    - ~/bin/release-deb systems-next
+
+release_to_production:
+  <<: *release
+  stage: release-production
+  script:
+    - ~/bin/release-deb systems-production
