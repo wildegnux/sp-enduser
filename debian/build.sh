@@ -1,7 +1,5 @@
-build() {
-	make
-}
-
 package() {
-	make DESTDIR="$pkgdir" install
+	# Pseudo code, do change before commit
+	DESTDIR="$pkgdir"
+	cp * $DESTDIR
 }
