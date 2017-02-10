@@ -7,16 +7,17 @@ class Settings
 {
 	private $settings = array();
 	private $database = null;
-	
+
 	private $nodeCredentials = array();
 	private $nodes = array();
+	private $clusters = array();
 	private $apiKey = null;
 	private $dbCredentials = array('dns' => null);
 	private $authSources = array(array('type' => 'server'));
-	
+
 	private $mailSender = null;
 	private $publicURL = null;
-	
+
 	private $pageName = "Halon log server";
 	private $theme = null;
 	private $brandLogo = null;
@@ -42,11 +43,11 @@ class Settings
 	private $useDatabaseStats = false;
 	private $quarantineFilter = array();
 	private $filterPattern = "{from} or {to}";
-	
+
 	private $digestToAll = false;
 	private $digestSecret = null;
 	private $sessionName = null;
-	
+
 	/**
 	 * Returns a shared Settings instance.
 	 */
@@ -57,7 +58,7 @@ class Settings
 			$inst = new Settings();
 		return $inst;
 	}
-	
+
 	/**
 	 * Private constructor; use Settings::Get().
 	 */
@@ -65,9 +66,9 @@ class Settings
 	{
 		$settings = array();
 		require BASE.'/settings.php';
-		
+
 		$this->settings = $settings;
-		
+
 		$this->extract($this->nodeCredentials, 'node');
 		$this->extract($this->apiKey, 'api-key');
 		$this->extract($this->mailSender, 'mail.from');
@@ -102,14 +103,17 @@ class Settings
 		$this->extract($this->digestToAll, 'digest.to-all');
 		$this->extract($this->digestSecret, 'digest.secret');
 		$this->extract($this->sessionName, 'session-name');
-		
+		$this->extract($this->clusters, 'cluster');
+
 		foreach ($this->nodeCredentials as $id => $cred) {
 			$username = isset($cred['username']) ? $cred['username'] : null;
 			$password = isset($cred['password']) ? $cred['password'] : null;
 			$serial = isset($cred['serialno']) ? $cred['serialno'] : null;
-			$this->nodes[] = new Node($id, $cred['address'], $username, $password, $serial);
+			$name = isset($cred['name']) ? $cred['name'] : null;
+			$cluster = isset($cred['cluster']) ? $cred['cluster'] : null;
+			$this->nodes[] = new Node($id, $cred['address'], $username, $password, $serial, $name, $cluster);
 		}
-		
+
 		if(!$this->publicURL)
 		{
 			$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? "https" : "http";
@@ -117,7 +121,7 @@ class Settings
 			$this->publicURL = preg_replace("#[^/]*$#", "", $url);
 		}
 	}
-	
+
 	/**
 	 * Extracts a value from the $this->settings array.
 	 */
@@ -129,10 +133,10 @@ class Settings
 			$tmp = isset($tmp[$part]) ? $tmp[$part] : null;
 			if($tmp === null) return;
 		}
-		
+
 		$out = $tmp;
 	}
-	
+
 	/**
 	 * Returns a database wrapper object.
 	 */
@@ -141,19 +145,19 @@ class Settings
 		if(!$this->database)
 		{
 			$credentials = $this->getDBCredentials();
-			
+
 			if(!$credentials['dsn'])
 				return null;
-			
+
 			$dsn = $credentials['dsn'];
 			$username = isset($credentials['user']) ? $credentials['user'] : null;
 			$password = isset($credentials['password']) ? $credentials['password'] : null;
 			$this->database = new Database($dsn, $username, $password);
 		}
-		
+
 		return $this->database;
 	}
-	
+
 	/**
 	 * Returns the credentials for all configured nodes.
 	 */
@@ -161,7 +165,7 @@ class Settings
 	{
 		return $this->nodeCredentials;
 	}
-	
+
 	/**
 	 * Returns a list of all configured nodes.
 	 */
@@ -169,7 +173,7 @@ class Settings
 	{
 		return $this->nodes;
 	}
-	
+
 	/**
 	 * Returns a specific node from the list, or null if there's no such node.
 	 */
@@ -194,7 +198,49 @@ class Settings
 		}
 		return null;
 	}
-	
+
+	/**
+	 * Returns the serial of a node by it's name, or null if there's no such node.
+	 */
+	public function getSerialByNodeName($name)
+	{
+		foreach ($this->nodes as $node)
+		{
+			if($node->getName() == $name)
+				try {
+					return $node->getSerial();
+				} catch (SoapFault $e) {}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the serials for all nodes in a cluster, or null if there's no such cluster or if cluster is empty.
+	 */
+	public function getSerialsByCluster($cluster)
+	{
+		$serials = [];
+		foreach ($this->nodes as $node)
+		{
+			if($node->getCluster() == $cluster)
+				try {
+					$serials[] = $node->getSerial();
+				} catch (SoapFault $e) {}
+		}
+		if(!empty($serials)) return $serials;
+		return null;
+	}
+
+	/**
+	 * Returns the names of all clusters, or null if there's no configured clusters.
+	 */
+	public function getClusters() {
+		if(!empty($this->clusters)) {
+			return array_keys($this->clusters);
+		}
+		return null;
+	}
+
 	/**
 	 * Returns the nodes' API key.
 	 */
@@ -202,7 +248,7 @@ class Settings
 	{
 		return $this->apiKey;
 	}
-	
+
 	/**
 	 * Returns the configured database credentials.
 	 */
@@ -210,7 +256,7 @@ class Settings
 	{
 		return $this->dbCredentials;
 	}
-	
+
 	/**
 	 * Returns all configured authentication sources.
 	 */
@@ -218,7 +264,7 @@ class Settings
 	{
 		return $this->authSources;
 	}
-	
+
 	/**
 	 * Returns the value for the "From:" field in outgoing emails, if any.
 	 */
@@ -226,7 +272,7 @@ class Settings
 	{
 		return $this->mailSender;
 	}
-	
+
 	/**
 	 * Returns the site's public URL (autodetected by default).
 	 */
@@ -262,7 +308,7 @@ class Settings
 	{
 		return $this->brandLogoHeight / 2;
 	}
-	
+
 	/**
 	 * Returns the page name.
 	 */
@@ -270,7 +316,7 @@ class Settings
 	{
 		return $this->pageName;
 	}
-	
+
 	/**
 	 * Returns some text to display at the top of the login form, or null.
 	 */
@@ -278,7 +324,7 @@ class Settings
 	{
 		return $this->loginText;
 	}
-	
+
 	/**
 	 * Returns some text to do display at the top of the forgot form, or null.
 	 */
@@ -286,7 +332,7 @@ class Settings
 	{
 		return $this->forgotText;
 	}
-	
+
 	/**
 	 * Returns the default-selected Source.
 	 */
@@ -304,7 +350,7 @@ class Settings
 	{
 		return $this->rateLimits;
 	}
-	
+
 	/**
 	 * Returns whether scores should be displayed.
 	 */
@@ -312,7 +358,7 @@ class Settings
 	{
 		return $this->displayScores;
 	}
-	
+
 	/**
 	 * Returns whether the text log should be displayed.
 	 */
@@ -320,7 +366,7 @@ class Settings
 	{
 		return $this->displayTextlog;
 	}
-	
+
 	/**
 	 * Returns whether the History source should be displayed.
 	 */
@@ -330,7 +376,7 @@ class Settings
 			return false;
 		return $this->displayHistory;
 	}
-	
+
 	/**
 	 * Returns whether the Queue source should be displayed.
 	 */
@@ -340,7 +386,7 @@ class Settings
 			return false;
 		return $this->displayQueue;
 	}
-	
+
 	/**
 	 * Returns whether the Quarantine source should be displayed.
 	 */
@@ -350,7 +396,7 @@ class Settings
 			return false;
 		return $this->displayQuarantine;
 	}
-	
+
 	/**
 	 * Returns whether the "All" (SOAP) source should be displayed.
 	 */
@@ -408,7 +454,7 @@ class Settings
 	{
 		return $this->displayListener;
 	}
-	
+
 	/**
 	 * ???
 	 */
@@ -416,7 +462,7 @@ class Settings
 	{
 		return $this->displayTransport;
 	}
-	
+
 	/**
 	 * Returns whether or not database logging is enabled.
 	 */
@@ -432,7 +478,7 @@ class Settings
 	{
 		return $this->useDatabaseStats;
 	}
-	
+
 	/**
 	 * Returns a list of which quarantines should be visible, or an empty array
 	 * if they should all be visible.
@@ -441,7 +487,7 @@ class Settings
 	{
 		return $this->quarantineFilter;
 	}
-	
+
 	/**
 	 * Returns the pattern for creating additional inbound/outbound
 	 * restrictions.
@@ -450,7 +496,7 @@ class Settings
 	{
 		return $this->filterPattern;
 	}
-	
+
 	/**
 	 * Returns whether digest emails should be sent to everyone.
 	 */
@@ -458,7 +504,7 @@ class Settings
 	{
 		return $this->digestToAll;
 	}
-	
+
 	/**
 	 * Returns the secret key used to generate a "direct release" link in
 	 * digest emails.
@@ -467,7 +513,7 @@ class Settings
 	{
 		return $this->digestSecret;
 	}
-	
+
 	/**
 	 * Returns the custom session name, if any.
 	 */
@@ -492,6 +538,26 @@ class Settings
 		if (isset($this->dbCredentials['partitiontype']))
 			return $this->dbCredentials['partitiontype'];
 		return 'integer';
+	}
+
+	 /**
+ 	 * Returns listener name from named cluster
+ 	 */
+	public function getListener($cluster, $listener) {
+		if(isset($this->clusters[$cluster]['listeners'][$listener])) {
+			return $this->clusters[$cluster]['listeners'][$listener];
+		}
+		return $listener;
+	}
+
+	/**
+	* Returns transport name from named cluster
+	*/
+	public function getTransport($cluster, $transport) {
+		if(isset($this->clusters[$cluster]['transports'][$transport])) {
+			return $this->clusters[$cluster]['transports'][$transport];
+		}
+		return $transport;
 	}
 
 	/**

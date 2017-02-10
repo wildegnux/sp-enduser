@@ -76,8 +76,9 @@
 						{/if}
 						</dd>
 						{if $listener}<dt>{t}Received by{/t}</dt><dd>{$listener}</dd>{/if}
-						<dt>{t}Server{/t}</dt><dd>{$mail->msgfromserver|escape|emptyspace}</dd>
+						<dt>{t}Received from{/t}</dt><dd>{$mail->msgfromserver|escape|emptyspace}</dd>
 						{if $mail->msgsasl}<dt>{t}User{/t}</dt><dd>{$mail->msgsasl|escape}</dd>{/if}
+						{if $cluster}<dt>{t}Cluster{/t}</dt><dd>{$cluster}</dd>{/if}
 						{if $transport}<dt>{t}Destination{/t}</dt><dd>{$transport}</dd>{/if}
 						<dt>ID</dt><dd>{$mail->msgid}</dd>
 					</dl>

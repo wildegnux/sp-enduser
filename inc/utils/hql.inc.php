@@ -39,6 +39,7 @@ function hql_transform($string)
 // this function only implements a subset of HQL
 function hql_to_sql($str, $driver, $prefix = 'hql')
 {
+	global $settings;
 	// allowed HQL fields, need to exist in messagelog table
 	$fields = array();
 	$fields['messageid'] = 'msgid';
@@ -52,6 +53,8 @@ function hql_to_sql($str, $driver, $prefix = 'hql')
 	$fields['sasl'] = 'msgsasl';
 	$fields['rpdscore'] = 'score_rpd';
 	$fields['sascore'] = 'score_sa';
+	$fields['node'] = 'node';
+	$fields['cluster'] = 'cluster';
 	if ($driver == 'pgsql') {
 		$fields['time'] = 'extract(epoch from msgts0)';
 	} else {
@@ -106,10 +109,30 @@ function hql_to_sql($str, $driver, $prefix = 'hql')
 				$value = str_replace(array('%', '&', '|', '!'), '', $value);
 				$values = preg_split('/ /', $value, -1, PREG_SPLIT_NO_EMPTY);
 				$value = implode($values, " & ");
+			} else if ($field == 'node') {
+				$serial = $settings->getSerialByNodeName($value);
+				if(!$serial) die('Invalid node "'.$value.'"');
+				$filter .= 'serialno = :'.$prefix.$i.' ';
+				$value = $serial;
+			} else if ($field == 'cluster') {
+				$serials = $settings->getSerialsByCluster($value);
+				if(empty($serials)) die('No nodes in cluster "'.$value.'"');
+				$filter .= 'serialno IN (';
+				$counter = 1;
+				foreach ($serials as $serial) {
+					$name = ':'.$prefix.$i.'_'.$counter;
+					$params[$name] = $serial;
+					$filter .= $name.($counter < count($serials) ? ', ' : '');
+					$counter++;
+				}
+				$filter .= ') ';
+				$customParams = true;
 			} else {
 				$filter .= $field.' '.$type.' :'.$prefix.$i.' ';
 			}
-			$params[':'.$prefix.$i] = $value;
+			if(!isset($customParams)) {
+				$params[':'.$prefix.$i] = $value;
+			}
 			$ftok = 1;
 		} else die('unexpected token '.htmlspecialchars($p));
 	}

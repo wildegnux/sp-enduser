@@ -3,23 +3,23 @@
 class DatabaseBackend extends Backend
 {
 	private $database = null;
-	
+
 	public function __construct($db)
 	{
 		$this->database = $db;
 	}
-	
+
 	// A database backend is valid if it has a database configured
 	public function isValid() { return $this->database != NULL; }
-	
+
 	// Database backends support history; it's literally all they do
 	public function supportsHistory() { return true; }
-	
+
 	public function loadMailHistory($search, $size, $param, &$errors = array())
 	{
 		// Note: this is ported straight out of index.php, improvements to come
 		$results = array();
-		
+
 		// Create search/restrict query for SQL
 		if ($this->database->getAttribute(PDO::ATTR_DRIVER_NAME) == 'pgsql') {
 			$unix_time_sql = 'extract(epoch from msgts0)';
@@ -32,7 +32,7 @@ class DatabaseBackend extends Backend
 		if (strpos($real_sql['sql'], ') UNION (') !== false) {
 			$real_sql['sql'] .= ' ORDER BY id DESC';
 		}
-		
+
 		// Fetch stuff
 		try {
 			$statement = $this->database->prepare($real_sql['sql']);
@@ -47,7 +47,7 @@ class DatabaseBackend extends Backend
 		} catch(Exception $e) {
 			$errors[] = $e->getMessage();
 		}
-		
+
 		return $results;
 	}
 

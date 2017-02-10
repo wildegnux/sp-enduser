@@ -7,23 +7,27 @@ class Node
 	private $username;
 	private $password;
 	private $serial;
-	
-	public function __construct($id, $address, $username = null, $password = null, $serial = null)
+	private $name;
+	private $cluster;
+
+	public function __construct($id, $address, $username = null, $password = null, $serial = null, $name = null, $cluster = null)
 	{
 		$this->id = $id;
 		$this->address = $address;
 		$this->username = $username;
 		$this->password = $password;
 		$this->serial = $serial;
+		$this->name = $name;
+		$this->cluster = $cluster;
 	}
-	
+
 	public function soap($async = false, $username = null, $password = null, $serial = null)
 	{
 		$session = Session::Get();
-		
+
 		if($username === null) $username = $session->getSOAPUsername() ?: $this->getUsername();
 		if($password === null) $password = $session->getSOAPPassword() ?: $this->getPassword();
-		
+
 		$options = array(
 			'location' => $this->getAddress().'/remote/',
 			'uri' => 'urn:halon',
@@ -33,7 +37,7 @@ class Node
 			'features' => SOAP_SINGLE_ELEMENT_ARRAYS,
 			'compression' => SOAP_COMPRESSION_ACCEPT | (SOAP_COMPRESSION_GZIP | 0)
 			);
-		
+
 		if ($async)
 			return new SoapClientAsync($options['location'].'?wsdl', $options);
 		return new SoapClient($options['location'].'?wsdl', $options);
@@ -43,26 +47,36 @@ class Node
 	{
 		return $this->id;
 	}
-	
+
 	public function getAddress()
 	{
 		return $this->address;
 	}
-	
+
 	public function getUsername()
 	{
 		return $this->username;
 	}
-	
+
 	public function getPassword()
 	{
 		return $this->password;
 	}
-	
+
 	public function getSerial($autoload = false)
 	{
 		if(!$this->serial && $autoload)
 			$this->serial = $this->soap()->getSerial()->result;
 		return $this->serial;
+	}
+
+	public function getName()
+	{
+		return $this->name;
+	}
+
+	public function getCluster()
+	{
+		return $this->cluster;
 	}
 }

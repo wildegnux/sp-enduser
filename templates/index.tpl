@@ -129,7 +129,11 @@
 						{if $mail.mail->msgaction == 'QUARANTINE'}
 							{t}Quarantine{/t}
 						{elseif $mail.mail->msgaction == 'QUEUE'}
-							{t retry=$mail.mail->msgretries}In queue (retry %1){/t} <span class="text-muted">{$mail.description|escape}</span>
+							{if $mail.mail->msgretries}
+								{t retry=$mail.mail->msgretries}In queue (retry %1){/t} <span class="text-muted">{$mail.description|escape}</span>
+							{else}
+								In queue <span class="text-muted">{$mail.description|escape}</span>
+							{/if}
 						{else}
 							{$mail.description|escape}
 						{/if}
@@ -280,6 +284,32 @@
 				<div class="col-sm-2"><select class="form-control" id="query_subject_op"><option value="=">{t}is{/t}</option><option value="~" selected>{t}contains{/t}</option></select></div>
 				<div class="col-sm-8"><input type="text" class="form-control" id="query_subject" placeholder=""></div>
 			</div>
+			{if $nodes}
+				<div class="form-group">
+					<label class="col-sm-2 control-label">{t}Node{/t}</label>
+					<label class="col-sm-2 control-label">{t}is{/t}</label>
+					<div class="col-sm-8"><select class="form-control" id="query_nodename">
+						<option value="">Any</option>
+						{foreach from=$nodes item=name}
+							<option value="{$name}">{$name}</option>
+						{/foreach}
+						</select>
+					</div>
+				</div>
+			{/if}
+			{if $clusters}
+				<div class="form-group">
+					<label class="col-sm-2 control-label">{t}Cluster{/t}</label>
+					<label class="col-sm-2 control-label">{t}is{/t}</label>
+					<div class="col-sm-8"><select class="form-control" id="query_cluster">
+						<option value="">Any</option>
+						{foreach from=$clusters item=name}
+							<option value="{$name}">{$name}</option>
+						{/foreach}
+						</select>
+					</div>
+				</div>
+			{/if}
 		</form>
 	</div>
 	<div class="modal-footer">

@@ -20,7 +20,7 @@ $(document).ready(function() {
 		}
 		e.preventDefault();
 	});
-	
+
 	$('td [data-action]').click(function(e) {
 		var action = $(this).data('action');
 		if(confirm("Really " + action + " message?")) {
@@ -30,7 +30,7 @@ $(document).ready(function() {
 			$("#multiform").submit();
 		}
 	});
-	
+
 	$('td[data-href], tr[data-href] td').wrapInner(function() {
 		return '<a class="data-link" href="' + ($(this).data('href') || $(this).parent().data('href')) + '"></a>';
 	});
@@ -41,7 +41,7 @@ $(document).ready(function() {
 	});
 	if ($('#select-all').closest('table').find('tbody').find('input[type=checkbox]').length == 0)
 		$('#select-all').hide();
-	
+
 	// This is for some reason needed to get the source list dropdown to
 	// work on iOS, I don't have the faintest idea why...
 	$('.dropdown-toggle').click(function() { });
@@ -95,6 +95,12 @@ $(document).ready(function() {
 
 		if ($("#query_mailtransport").val())
 			search.push("transport=" + $("#query_mailtransport").val());
+
+		if ($("#query_nodename").val())
+			search.push("node=" + $("#query_nodename").val());
+
+		if ($("#query_cluster").val())
+			search.push("cluster=" + $("#query_cluster").val());
 
 		$("#search").val(search.join(' '));
 	});

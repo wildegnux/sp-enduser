@@ -169,6 +169,13 @@ $smarty->assign('mailwithaction', $hasMailWithActions);
 $smarty->assign('mailhasmultipleaddresses', count(Session::Get()->getAccess('mail')) != 1 or count(Session::Get()->getAccess('domain')) > 0);
 if (count(Session::Get()->getAccess('domain')) > 0 && count(Session::Get()->getAccess('domain')) < 30) $smarty->assign('search_domains', Session::Get()->getAccess('domain'));
 if ($settings->getDisplayScores()) $smarty->assign('feature_scores', true);
+$nodenames = [];
+foreach ($settings->getNodes() as $node) {
+	$name = $node->getName();
+	if ($name) $nodenames[] = $name;
+}
+if ($nodenames) $smarty->assign('nodes', $nodenames);
+if ($settings->getClusters()) $smarty->assign('clusters', $settings->getClusters());
 
 $mails = array();
 
@@ -224,7 +231,7 @@ foreach ($timesort as $t) {
 	}
 }
 
-$paging = array(); 
+$paging = array();
 foreach ($param as $type => $nodes) {
 	foreach ($nodes as $node => $args) {
 		if ($args['offset'] > 0) {

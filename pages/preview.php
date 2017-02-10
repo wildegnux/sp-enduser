@@ -150,10 +150,17 @@ if ($header) {
 $smarty->assign('referer', isset($_POST['referer']) ? $_POST['referer'] : $_SERVER['HTTP_REFERER']);
 $smarty->assign('action_color', $action_colors[$mail->msgaction]);
 $smarty->assign('action_icon', $action_icons[$mail->msgaction]);
-$transports = $settings->getDisplayTransport();
-if (isset($transports[$mail->msgtransport])) $smarty->assign('transport', $transports[$mail->msgtransport]);
-$listeners = $settings->getDisplayListener();
-if (isset($listeners[$mail->msglistener])) $smarty->assign('listener', $listeners[$mail->msglistener]);
+if($node) {
+	$cluster = $node->getCluster();
+	$smarty->assign('listener', ($node->getName() ? $node->getName().': ' : '') . $settings->getListener($cluster, $mail->msglistener));
+	$smarty->assign('transport', $settings->getTransport($cluster, $mail->msgtransport));
+	if ($cluster) $smarty->assign('cluster', $cluster);
+} else {
+	$transports = $settings->getDisplayTransport();
+	if (isset($transports[$mail->msgtransport])) $smarty->assign('transport', $transports[$mail->msgtransport]);
+	$listeners = $settings->getDisplayListener();
+	if (isset($listeners[$mail->msglistener])) $smarty->assign('listener', $listeners[$mail->msglistener]);
+}
 $smarty->assign('time', $mail->msgts0 - $_SESSION['timezone'] * 60, '%Y-%m-%d %H:%M:%S');
 if (count($settings->getNodes())) $smarty->assign('has_nodes', true);
 
