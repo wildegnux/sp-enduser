@@ -200,6 +200,19 @@ class Settings
 	}
 
 	/**
+	 * Returns a specific node from the list by name, or null if there's no such node.
+	 */
+	public function getNodeByName($serial)
+	{
+		foreach ($this->nodes as $node)
+		{
+			if($node->getName() == $serial)
+				return $node;
+		}
+		return null;
+	}
+
+	/**
 	 * Returns the serial of a node by it's name, or null if there's no such node.
 	 */
 	public function getSerialByNodeName($name)
