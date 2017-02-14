@@ -37,6 +37,10 @@ class Node
 			'features' => SOAP_SINGLE_ELEMENT_ARRAYS,
 			'compression' => SOAP_COMPRESSION_ACCEPT | (SOAP_COMPRESSION_GZIP | 0)
 			);
+		$options['stream_context'] = stream_context_create(array('ssl' => array(
+			'verify_peer' => true,
+			'verify_peer_name' => false, // TODO Get a propper cert!
+		)));
 
 		if ($async)
 			return new SoapClientAsync($options['location'].'?wsdl', $options);
