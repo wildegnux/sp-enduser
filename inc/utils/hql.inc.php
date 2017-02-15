@@ -101,6 +101,7 @@ function hql_to_sql($str, $driver, $prefix = 'hql')
 					$value = '%'.$value.'%';
 			}
 			// fully rewrite fulltext search
+			$customParams = false;
 			if ($field == 'msgsubject' && $type == 'LIKE' && $driver == 'mysql') {
 				$filter .= 'MATCH (msgsubject) AGAINST (:'.$prefix.$i.' IN BOOLEAN MODE)';
 				$value = str_replace('%', '', $value);
@@ -130,7 +131,7 @@ function hql_to_sql($str, $driver, $prefix = 'hql')
 			} else {
 				$filter .= $field.' '.$type.' :'.$prefix.$i.' ';
 			}
-			if(!isset($customParams)) {
+			if(!$customParams) {
 				$params[':'.$prefix.$i] = $value;
 			}
 			$ftok = 1;
