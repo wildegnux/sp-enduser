@@ -1,4 +1,5 @@
 $(document).ready(function() {
+	$('#namespace').focus();
 	$('#link-add').click(function() {
 		$('#btn-cancel').click();
 		$('html, body').animate({
@@ -14,7 +15,7 @@ $(document).ready(function() {
 		$('#side-panel').addClass('panel-primary');
 
 		$('#action').val('edit');
-		$('#value').val($(this).data('value'));
+		$('#value').val($(this).data('value')).focus();
 		$('#edit-id').val($(this).attr('id'));
 		$('#edit-namespace').text($(this).closest('tr').children('.item-namespace').text());
 		$('#edit-key').text($(this).closest('tr').children('.item-key').text());
@@ -40,6 +41,8 @@ $(document).ready(function() {
 
 		$('.visible-edit').addClass('hidden');
 		$('.hidden-edit').removeClass('hidden');
+
+		$('#namespace').focus();
 	});
 
 	$('#item-form').submit(function() {
@@ -84,7 +87,7 @@ $(document).ready(function() {
 			"key": key
 		}, function(data) {
 			if (data.error) {
-				alert('Error:' + data.error);
+				alert('Error: ' + data.error);
 				return;
 			}
 			window.location.reload();

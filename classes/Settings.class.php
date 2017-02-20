@@ -425,6 +425,8 @@ class Settings
 	 */
 	public function getDisplayBWList()
 	{
+		if (!isset($this->dbCredentials['dsn']))
+			return false;
 		return $this->displayBWList;
 	}
 
@@ -433,6 +435,8 @@ class Settings
 	 */
 	public function getDisplaySpamSettings()
 	{
+		if (!isset($this->dbCredentials['dsn']))
+			return false;
 		return $this->displaySpamSettings;
 	}
 
@@ -457,6 +461,8 @@ class Settings
 	 */
 	public function getDisplayDataStore()
 	{
+		if (!isset($this->dbCredentials['dsn']))
+			return false;
 		return $this->displayDataStore;
 	}
 

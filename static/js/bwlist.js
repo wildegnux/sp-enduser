@@ -1,4 +1,6 @@
 $(document).ready(function() {
+	$('#type').focus();
+
 	$('#link-add').click(function() {
 		$('#btn-cancel').click();
 		$('html, body').animate({
@@ -19,7 +21,7 @@ $(document).ready(function() {
 		$('#side-panel').addClass('panel-primary');
 
 		$('#action').val('edit');
-		$('#value').val($(this).data('value'));
+		$('#value').val($(this).data('value')).focus();
 		$('#edit-id').val($(this).attr('id'));
 		$('#edit-recipient').text($(this).closest('tr').children('.item-access').text());
 		$('#type>option:eq(' + types[type] +')').prop('selected', true);
@@ -47,6 +49,8 @@ $(document).ready(function() {
 
 		$('.visible-edit').addClass('hidden');
 		$('.hidden-edit').removeClass('hidden');
+
+		$('#type').focus();
 	});
 
 	$('#check-all').click(function() {

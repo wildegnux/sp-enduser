@@ -19,12 +19,18 @@ if (Session::Get()->getUsername()) $smarty->assign('username', Session::Get()->g
 
 if (isset($javascript)) $smarty->assign('javascript', $javascript);
 
-$dbCredentials = $settings->getDBCredentials();
-if ($dbCredentials['dsn'] && $settings->getDisplayBWList()) $smarty->assign('feature_bwlist', true);
-if ($dbCredentials['dsn'] && $settings->getDisplaySpamSettings()) $smarty->assign('feature_spam', true);
+if ($settings->getDisplayBWList()) $smarty->assign('feature_bwlist', true);
+if ($settings->getDisplaySpamSettings()) $smarty->assign('feature_spam', true);
 $access = Session::Get()->getAccess();
 if ((count($access['domain']) > 0 || isset($access['userid'])) && $settings->getDisplayStats()) $smarty->assign('feature_stats', true);
 if (Session::Get()->checkAccessAll() && $settings->getDisplayRateLimits()) $smarty->assign('feature_rates', true);
-if (Session::Get()->checkAccessAll() && $dbCredentials['dsn'] && $settings->getDisplayDataStore()) $smarty->assign('feature_datastore', true);
+
+if ((Session::Get()->checkAccessAll()
+	|| count($access['domain']) > 0)
+	&& $settings->getDisplayDataStore()
+	&& !Session::Get()->checkDisabledFeature('display-datastore')
+) {
+	$smarty->assign('feature_datastore', true);
+}
 
 if (isset($body_class)) $smarty->assign('body_class', $body_class);

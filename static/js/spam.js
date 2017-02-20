@@ -1,4 +1,5 @@
 $(document).ready(function() {
+	$('#level').focus();
 	$('#link-add').click(function() {
 		$('#btn-cancel').click();
 		$('html, body').animate({
@@ -20,6 +21,7 @@ $(document).ready(function() {
 		$('#edit-id').val($(this).attr('id'));
 		$('#edit-recipient').text($(this).closest('tr').children('.item-access').text());
 		$('#level>option:eq(' + levels[level] +')').prop('selected', true);
+		$('#level').focus();
 
 		$('.hidden-edit').addClass('hidden');
 		$('.visible-edit').removeClass('hidden');
@@ -42,6 +44,8 @@ $(document).ready(function() {
 
 		$('.visible-edit').addClass('hidden');
 		$('.hidden-edit').removeClass('hidden');
+
+		$('#level').focus();
 	});
 
 	$('#check-all').click(function() {
