@@ -9,9 +9,8 @@ class Node
 	private $serial;
 	private $name;
 	private $cluster;
-	private $peername;
 
-	public function __construct($id, $address, $username = null, $password = null, $serial = null, $name = null, $cluster = null, $peername = null)
+	public function __construct($id, $address, $username = null, $password = null, $serial = null, $name = null, $cluster = null)
 	{
 		$this->id = $id;
 		$this->address = $address;
@@ -20,7 +19,6 @@ class Node
 		$this->serial = $serial;
 		$this->name = $name;
 		$this->cluster = $cluster;
-		$this->peername = $peername;
 	}
 
 	public function soap($async = false, $username = null, $password = null, $serial = null)
@@ -39,9 +37,6 @@ class Node
 			'features' => SOAP_SINGLE_ELEMENT_ARRAYS,
 			'compression' => SOAP_COMPRESSION_ACCEPT | (SOAP_COMPRESSION_GZIP | 0)
 			);
-		if($this->peername) {
-			$options['stream_context'] = stream_context_create(array('ssl' => array('peer_name' => $this->peername)));
-		}
 
 		if ($async)
 			return new SoapClientAsync($options['location'].'?wsdl', $options);

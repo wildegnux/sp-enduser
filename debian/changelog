@@ -1,5 +1,12 @@
 sp-enduser (0.2) systems-xenial; urgency=low
 
+  * Removed optional SSL peer_name for SOAP connections as it turns out not to be needed
+
+  -- Dan Malm <dam@one.com>  Thu, 23 Feb 2017 10:37:00 +0000
+
+
+sp-enduser (0.2) systems-xenial; urgency=low
+
   * Search options based on cluster / node
   * Display cluster / node on preview page
   * Option to pull rate from specific node

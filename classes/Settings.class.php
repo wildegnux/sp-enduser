@@ -113,8 +113,7 @@ class Settings
 			$serial = isset($cred['serialno']) ? $cred['serialno'] : null;
 			$name = isset($cred['name']) ? $cred['name'] : null;
 			$cluster = isset($cred['cluster']) ? $cred['cluster'] : null;
-			$peername = isset($this->$clusters[$cluster]['cert_peer_name']) ? $this->$clusters[$cluster]['cert_peer_name'] : null;
-			$this->nodes[] = new Node($id, $cred['address'], $username, $password, $serial, $name, $cluster, $peername);
+			$this->nodes[] = new Node($id, $cred['address'], $username, $password, $serial, $name, $cluster);
 		}
 
 		if(!$this->publicURL)
