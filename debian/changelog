@@ -1,6 +1,16 @@
-sp-enduser (0.1) systems-xenial; urgency=low
+sp-enduser (0.2) systems-xenial; urgency=low
 
-  * Initial release.
+  * Search options based on cluster / node
+  * Display cluster / node on preview page
+  * Option to pull rate from specific node
+  * Optional SSL peer_name for SOAP connections
+  * Merged with Halon/master
 
- -- Thomas Alexander Frederiksen <taf@one.com>  Mon, 30 Jan 2017 13:19:30 +0000
+ -- Dan Malm <dam@one.com>  Thu, 23 Feb 2017 13:19:30 +0000
 
+
+ sp-enduser (0.1) systems-xenial; urgency=low
+
+   * Initial release.
+
+  -- Thomas Alexander Frederiksen <taf@one.com>  Mon, 30 Jan 2017 13:19:30 +0000
