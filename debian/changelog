@@ -1,3 +1,10 @@
+sp-enduser (0.4) systems-xenial; urgency=low
+
+  * Added statement_timeout for mail log searches if using postgres
+
+  -- Dan Malm <dam@one.com>  Fri, 24 Feb 2017 13:37:00 +0000
+
+
 sp-enduser (0.3) systems-xenial; urgency=low
 
   * Removed optional SSL peer_name for SOAP connections as it turns out not to be needed

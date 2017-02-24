@@ -17,6 +17,7 @@ class DatabaseBackend extends Backend
 
 	public function loadMailHistory($search, $size, $param, &$errors = array())
 	{
+
 		// Note: this is ported straight out of index.php, improvements to come
 		$results = array();
 
@@ -35,6 +36,14 @@ class DatabaseBackend extends Backend
 
 		// Fetch stuff
 		try {
+			$this->database->beginTransaction();
+			if($this->database->getAttribute(PDO::ATTR_DRIVER_NAME) == 'pgsql') {
+				$settings = Settings::Get();
+				$timeout = $settings->getDBCredentials()['statement_timeout'];
+				if($timeout) {
+					$this->database->query('SET LOCAL statement_timeout = '.$timeout);
+				}
+			}
 			$statement = $this->database->prepare($real_sql['sql']);
 			$statement->execute($real_sql['params']);
 			$dup = [];
@@ -47,6 +56,7 @@ class DatabaseBackend extends Backend
 		} catch(Exception $e) {
 			$errors[] = $e->getMessage();
 		}
+		$this->database->commit();
 
 		return $results;
 	}
