@@ -1,23 +1,44 @@
 {include file='header.tpl' title='Message' body_class='has-bottom-bar'}
 <nav class="navbar navbar-default navbar-toolbar navbar-static-top hidden-xs">
 	<div class="container-fluid">
+		<ul class="nav navbar-nav">
+			{if $bwlist_settings.whitelist.show}
+			<li>
+				{if $bwlist_settings.whitelist.enabled}
+					<a data-action="whitelist"><i class="fa fa-check" style="color:green"></i>&nbsp;{t}Whitelist{/t}</a>
+				{else}
+					<a href="#"><i class="fa fa-check" style="color:lightgrey"></i>&nbsp;<span style="color: lightgrey">{t}Whitelisted{/t}</span></a>
+				{/if}
+			</li>
+			{/if}
+			{if $bwlist_settings.blacklist.show}
+			<li>
+				{if $bwlist_settings.blacklist.enabled}
+					<a data-action="blacklist"><i class="fa fa-ban" style="color:red"></i>&nbsp;{t}Blacklist{/t}</a>
+				{else}
+					<a href="#"><i class="fa fa-ban" style="color:lightgrey"></i>&nbsp;<span style="color: lightgrey">{t}Blacklisted{/t}</span></a>
+				{/if}
+			</li>
+			{/if}
+		</ul>
 		<ul class="nav navbar-nav navbar-right">
 			{if isset($node)}
 				{if $support_log}
 					<li><a href="?page=log&id={$mail->id}&node={$node}&type={$type}"><i class="fa fa-file-text-o"></i>&nbsp;{t}Text log{/t}</a></li>
 				{/if}
-				{if $type == 'queue'}
-					{if ! in_array('preview-mail-body', $disabled_features)}<li><a href="?page=download&id={$mail->id}&node={$node}"><i class="fa fa-download"></i>&nbsp;{t}Download{/t}</a></li>{/if}
+				{if $type == 'queue' || $type == 'archive'}
+					{if ! in_array('preview-mail-body', $disabled_features)}<li><a href="?page=download&id={$mail->id}&node={$node}&type={$type}"><i class="fa fa-download"></i>&nbsp;{t}Download{/t}</a></li>{/if}
 					<li class="divider"></li>
 					<li><a data-action="delete"><i class="fa fa-trash-o"></i>&nbsp;{t}Delete{/t}</a></li>
 					<li><a data-action="bounce"><i class="fa fa-mail-reply"></i>&nbsp;{t}Bounce{/t}</a></li>
-					<li><a data-action="retry"><i class="fa fa-mail-forward"></i>&nbsp;{if $mail->msgaction=='QUARANTINE'}{t}Release{/t}{else}{t}Retry{/t}{/if}</a></li>
+					<li><a data-action="retry"><i class="fa fa-mail-forward"></i>&nbsp;{if $mail->msgaction=='QUARANTINE' || $mail->msgaction=='ARCHIVE'}{t}Release{/t}{else}{t}Retry{/t}{/if}</a></li>
+					{if $mail->msgaction=='ARCHIVE'}<li><a data-action="duplicate"><i class="fa fa-mail-forward"></i>&nbsp;{t}Release duplicate{/t}</a></li>{/if}
 				{/if}
 			{/if}
 		</ul>
 	</div>
 </nav>
-{if isset($node) and ($support_log or $type == 'queue')}
+{if isset($node) and ($support_log or $type == 'queue' or $bwlist_settings.whitelist.show or $bwlist_settings.blacklist.show)}
 <nav class="navbar navbar-default navbar-fixed-bottom visible-xs" id="bottom-bar">
 	<div class="container-fluid">
 		<ul class="nav navbar-nav">
@@ -27,12 +48,32 @@
 					{if $support_log}
 						<li><a href="?page=log&id={$mail->id}&node={$node}&type={$type}"><i class="fa fa-file-text-o"></i>&nbsp;{t}Text log{/t}</a></li>
 					{/if}
-					{if $type == 'queue'}
+					{if $bwlist_settings.whitelist.show}
+					<li>
+						{if $bwlist_settings.whitelist.enabled}
+							<a data-action="whitelist"><i class="fa fa-check" style="color:green"></i>&nbsp;{t}Whitelist{/t}</a>
+						{else}
+							<a href="#"><i class="fa fa-check" style="color:lightgrey"></i>&nbsp;<span style="color: lightgrey">{t}Whitelisted{/t}</span></a>
+						{/if}
+					</li>
+					{/if}
+					{if $bwlist_settings.blacklist.show}
+					<li>
+						{if $bwlist_settings.blacklist.enabled}
+							<a data-action="blacklist"><i class="fa fa-ban" style="color:red"></i>&nbsp;{t}Blacklist{/t}</a>
+						{else}
+							<a href="#"><i class="fa fa-ban" style="color:lightgrey"></i>&nbsp;<span style="color: lightgrey">{t}Blacklisted{/t}</span></a>
+						{/if}
+					</li>
+					{/if}
+					{if $type == 'queue' || $type == 'archive'}
+						<li class="divider"></li>
 						<li><a href="?page=download&id={$mail->id}&node={$node}"><i class="fa fa-download"></i>&nbsp;{t}Download{/t}</a></li>
 						<li class="divider"></li>
 						<li><a data-action="delete"><i class="fa fa-trash-o"></i>&nbsp;{t}Delete{/t}</a></li>
 						<li><a data-action="bounce"><i class="fa fa-mail-reply"></i>&nbsp;{t}Bounce{/t}</a></li>
-						<li><a data-action="retry"><i class="fa fa-mail-forward"></i>&nbsp;{if $mail->msgaction=='QUARANTINE'}{t}Release{/t}{else}{t}Retry{/t}{/if}</a></li>
+						<li><a data-action="retry"><i class="fa fa-mail-forward"></i>&nbsp;{if $mail->msgaction=='QUARANTINE' || $mail->msgaction=='ARCHIVE'}{t}Release{/t}{else}{t}Retry{/t}{/if}</a></li>
+						{if $mail->msgaction=='ARCHIVE'}<li><a data-action="duplicate"><i class="fa fa-mail-forward"></i>&nbsp;{t}Release duplicate{/t}</a></li>{/if}
 					{/if}
 				</ul>
 			</li>
@@ -131,7 +172,18 @@
 				{elseif $encode == 'TEXT'}
 					<pre class="panel-body msg-body">{$body}</pre>
 				{elseif $encode == 'HTML' or $encode == 'ERROR'}
+					{if $use_iframe == true}
+					<iframe id="preview-html" sandbox srcdoc="{$body|escape:'htmlall'}" class="panel-body msg-body-iframe"></iframe>
+					<script>
+						var updateSize = function() {
+							$("#preview-html").css("height", $(window).height() * 0.5);
+						}
+						$(updateSize);
+						$(window).resize(updateSize);
+					</script>
+					{else}
 					<div class="panel-body msg-body">{$body}</div>
+					{/if}
 				{/if}
 				{if $attachments}
 				<div class="panel-footer">
@@ -183,10 +235,14 @@
 		{/if}
 	</div>
 	{if isset($node)}
-	<form id="actionform" method="post" action="?page=preview&node={$node}&id={$mail->id}">
+	<form id="actionform" method="post" action="?page=preview&node={$node}&id={$mail->id}&type={$type}">
 		<input type="hidden" name="action" id="action" value="">
 		<input type="hidden" name="referer" id="referer" value="{$referer|escape}">
 	</form>
+	{if $bwlist_settings.whitelist.show || $bwlist_settings.blacklist.show}
+	<input type="hidden" name="bwlist-from" id="bwlist-from" value="{$mail->msgfrom|escape}">
+	<input type="hidden" name="bwlist-to" id="bwlist-to" value="{$mail->msgto|escape}">
+	{/if}
 	{/if}
 </div>
 {include file='footer.tpl'}

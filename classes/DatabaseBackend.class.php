@@ -102,6 +102,8 @@ class DatabaseBackend extends Backend
 
 		if (count($settings->getQuarantineFilter()) > 0)
 			die('you cannot combine quarantine-filter and local history');
+		if (count($settings->getArchiveFilter()) > 0)
+			die('you cannot combine archive-filter and local history');
 		$filter = array();
 		$params = array();
 		$i = 0;

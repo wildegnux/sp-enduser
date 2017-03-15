@@ -31,6 +31,7 @@ class Settings
 	private $displayHistory = true;
 	private $displayQueue = true;
 	private $displayQuarantine = true;
+	private $displayArchive = false;
 	private $displayAll = true;
 	private $displayBWList = true;
 	private $displaySpamSettings = false;
@@ -43,6 +44,7 @@ class Settings
 	private $useDatabaseLog = false;
 	private $useDatabaseStats = false;
 	private $quarantineFilter = array();
+	private $archiveFilter = array();
 	private $filterPattern = "{from} or {to}";
 
 	private $digestToAll = false;
@@ -87,6 +89,7 @@ class Settings
 		$this->extract($this->displayHistory, 'display-history');
 		$this->extract($this->displayQueue, 'display-queue');
 		$this->extract($this->displayQuarantine, 'display-quarantine');
+		$this->extract($this->displayArchive, 'display-archive');
 		$this->extract($this->displayAll, 'display-all');
 		$this->extract($this->displayBWList, 'display-bwlist');
 		$this->extract($this->displaySpamSettings, 'display-spamsettings');
@@ -101,6 +104,7 @@ class Settings
 		$this->extract($this->dbCredentials, 'database');
 		$this->extract($this->authSources, 'authentication');
 		$this->extract($this->quarantineFilter, 'quarantine-filter');
+		$this->extract($this->archiveFilter, 'archive-filter');
 		$this->extract($this->filterPattern, 'filter-pattern');
 		$this->extract($this->digestToAll, 'digest.to-all');
 		$this->extract($this->digestSecret, 'digest.secret');
@@ -111,9 +115,8 @@ class Settings
 			$username = isset($cred['username']) ? $cred['username'] : null;
 			$password = isset($cred['password']) ? $cred['password'] : null;
 			$serial = isset($cred['serialno']) ? $cred['serialno'] : null;
-			$name = isset($cred['name']) ? $cred['name'] : null;
-			$cluster = isset($cred['cluster']) ? $cred['cluster'] : null;
-			$this->nodes[] = new Node($id, $cred['address'], $username, $password, $serial, $name, $cluster);
+			$tls = isset($cred['tls']) ? $cred['tls'] : array();
+			$this->nodes[] = new Node($id, $cred['address'], $username, $password, $serial, $tls);
 		}
 
 		if(!$this->publicURL)
@@ -413,6 +416,16 @@ class Settings
 	}
 
 	/**
+	 * Returns whether the Archive source should be displayed.
+	 */
+	public function getDisplayArchive()
+	{
+		if ($this->getUseDatabaseLog())
+			return false;
+		return $this->displayArchive;
+	}
+
+	/**
 	 * Returns whether the "All" (SOAP) source should be displayed.
 	 */
 	public function getDisplayAll()
@@ -517,6 +530,15 @@ class Settings
 	public function getQuarantineFilter()
 	{
 		return $this->quarantineFilter;
+	}
+
+	/**
+	 * Returns a list of which archives should be visible, or an empty array
+	 * if they should all be visible.
+	 */
+	public function getArchiveFilter()
+	{
+		return $this->archiveFilter;
 	}
 
 	/**
